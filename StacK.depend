@@ -1,0 +1,8 @@
+# depslib dependency file v1.0
+1727336729 source:d:\codeblocks\stack\main.cpp
+	<stdio.h>
+	<assert.h>
+	<stdlib.h>
+	<math.h>
+	<string.h>
+
