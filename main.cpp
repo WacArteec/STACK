@@ -7,32 +7,45 @@
 #define $$$
 #define Stack_Ass(st) \
 
+enum {SIZE_PROBLEM};
+
+typedef long unsigned int stack_type_duty ;
 
 struct Stackstruct
 {
     int* record;
-    size_t cur_size;
-    size_t max_size;
+    stack_type_duty cur_size;
+    stack_type_duty max_size;
+    const char* err_out_file = "ShowStack.txt";
 };
 
-void StackInit(Stackstruct* st, int count_elem);
-int StackOk(Stackstruct* st);
+int StackInit(Stackstruct* st, int count_elem);
+void StackOk(Stackstruct* st, int LineNum);
 void StackPush(Stackstruct* st, int in);
 int StackPull(Stackstruct* st);
 void ShowStack(Stackstruct* st);
-void MoreSize(Stackstruct* st);
+void ChangeSize(Stackstruct* st);
 void StackDestroy(Stackstruct* st);
 
 int main()
 {
     Stackstruct st = {};
-    StackInit(&st, -1);
+
+    int stack_size = 0;
+    do
+    {
+        printf("Enter size of your stack: \n");
+        scanf("%d", &stack_size);
+    }
+    while(StackInit(&st, stack_size));
+
     for(int i = 0; i < 25; i++)
     {
         StackPush(&st, i);
 //$$$     printf("i = %d \n", i);
     }
-    for(int i = 0; i < 15; i++)
+
+    for(int i = 0; i < 25; i++)
     {
         printf("%d \n", StackPull(&st));
     }
@@ -42,14 +55,14 @@ int main()
     return 0;
 }
 
-void StackInit(Stackstruct* st, int count_elem)
+int StackInit(Stackstruct* st, int count_elem)
 {
     assert(st);
 
     if(count_elem < 0)
     {
         fprintf(stderr, "SIZE CAN BE ONLY MORE THAN ZERO OR EQUAL \n \n");
-        assert(0);
+        return 1;
     }
 
     st->record = (int*) calloc(count_elem, sizeof(int));
@@ -60,38 +73,40 @@ void StackInit(Stackstruct* st, int count_elem)
     if(count_elem > 1) st->max_size = count_elem;
     else st->max_size = 1;
 
-    assert(StackOk(st));
+    StackOk(st, __LINE__);
+
+    return 0;
 }
 
-int StackOk(Stackstruct* st)
+void StackOk(Stackstruct* st, int LineNum)
 {
     if(st == NULL || st->record == NULL || st->cur_size >= st->max_size)
     {
+        printf("\n error on line ¹%d\n", LineNum);
         ShowStack(st);
-        return 0;
+        exit(1);
     }
-    else return 1;
 }
 
 void ShowStack(Stackstruct* st)
 {
     assert(st);
 
-    FILE* err_out = fopen("ShowStack.txt", "w");
+    FILE* err_out = fopen(st->err_out_file, "w");
 
     fprintf(err_out, "current point = %lu \n max size = %lu \n", st->cur_size, st->max_size);
 
-    int i = 0;
+    stack_type_duty i = 0;
     while(i < st->cur_size)
     {
-        fprintf(err_out, "*[%d] = %d \n", i, st->record[i]);
+        fprintf(err_out, "*[%lu] = %d \n", i, st->record[i]);
         i++;
     }
 
-    int j = st->cur_size;
+    stack_type_duty j = st->cur_size;
     while(j < st->max_size)
     {
-        fprintf(err_out, "[%d] = %d B.ZH.D \n", j, st->record[j]);
+        fprintf(err_out, "[%lu] = %d B.ZH.D \n", j, st->record[j]);
         j++;
     }
 
@@ -100,17 +115,17 @@ void ShowStack(Stackstruct* st)
 
 void StackPush(Stackstruct* st, int in)
 {
-    assert(StackOk(st));
+    StackOk(st, __LINE__);
 
-    MoreSize(st);
+    ChangeSize(st);
 
     st->record[st->cur_size] = in;
     st->cur_size++;
 
-    assert(StackOk(st));
+    StackOk(st, __LINE__);
 }
 
-void MoreSize(Stackstruct* st)
+void ChangeSize(Stackstruct* st)
 {
     assert(st);
 
@@ -122,17 +137,7 @@ void MoreSize(Stackstruct* st)
 //$$$     printf("I NEED MORE SIZE \n");
     }
 
-    assert(StackOk(st));
-}
-
-int StackPull(Stackstruct* st)
-{
-    assert(StackOk(st));
-
-    st->cur_size--;
-    int out = st->record[st->cur_size];
-
-    if(4 * (st->cur_size) <= st->max_size)
+    if(4 * (st->cur_size + 1) <= st->max_size)
     {
         int less_size = round((st->max_size)/2);
         st->record = (int*) realloc(st->record, less_size);
@@ -141,14 +146,27 @@ int StackPull(Stackstruct* st)
         st->max_size = less_size;
     }
 
-    assert(StackOk(st));
+    StackOk(st, __LINE__);
+}
+
+int StackPull(Stackstruct* st)
+{
+    StackOk(st, __LINE__);
+
+    st->cur_size--;
+    int out = st->record[st->cur_size];
+
+    ChangeSize(st);
+
+    StackOk(st, __LINE__);
 
     return out;
 }
 
+
 void StackDestroy(Stackstruct* st)
 {
-    assert(StackOk(st));
+    StackOk(st, __LINE__);
     free(st->record);
     st->record = NULL;
     st->cur_size = 0;
