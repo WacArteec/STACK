@@ -5,7 +5,7 @@
 #include <string.h>
 
 #define $$$
-#define Stack_Ass(st) \
+#define stack stacks[current_stack]
 
 enum{MORESIZE, LESSSIZE};
 enum {SIZE_PROBLEM};
@@ -86,16 +86,16 @@ void ShowStack()
     fprintf(err_out, "current point = %lu \n max size = %lu \n", stacks[current_stack].cur_size, stacks[current_stack].max_size);
 
     stack_type_duty i = 0;
-    while(i < stacks[current_stack].cur_size)
+    while(i < stack.cur_size)
     {
-        fprintf(err_out, "*[%lu] = %d \n", i, stacks[current_stack].record[i]);
+        fprintf(err_out, "*[%lu] = %d \n", i, stack.record[i]);
         i++;
     }
 
-    stack_type_duty j = stacks[current_stack].cur_size;
-    while(j < stacks[current_stack].max_size)
+    stack_type_duty j = stack.cur_size;
+    while(j < stack.max_size)
     {
-        fprintf(err_out, "[%lu] = %d B.ZH.D \n", j, stacks[current_stack].record[j]);
+        fprintf(err_out, "[%lu] = %d B.ZH.D \n", j, stack.record[j]);
         j++;
     }
 
@@ -108,8 +108,8 @@ void StackPush(int in)
 
     ChangeSize(MORESIZE);
 
-    stacks[current_stack].record[stacks[current_stack].cur_size] = in;
-    stacks[current_stack].cur_size++;
+    stack.record[stack.cur_size] = in;
+    stack.cur_size++;
 
     StackOk(__LINE__);
 }
@@ -119,28 +119,35 @@ void ChangeSize(int mode)
     switch(mode)
     {
         case MORESIZE:
-            if(stacks[current_stack].cur_size >= stacks[current_stack].max_size - 1)
+            if(stack.cur_size >= stack.max_size - 1)
             {
-                stacks[current_stack].max_size *= 2;
-                stacks[current_stack].record = (int*) realloc(stacks[current_stack].record, stacks[current_stack].max_size * sizeof(int));
-                assert(stacks[current_stack].record);
+                stack.max_size *= 2;
+                stack.record = (int*) realloc(stack.record, stack.max_size * sizeof(int));
+                assert(stack.record);
 //$$$             printf("I NEED MORE SIZE \n");
             }
             break;
 
         case LESSSIZE:
-            if(4 * (stacks[current_stack].cur_size + 1) <= stacks[current_stack].max_size)
+            if(4 * (stack.cur_size + 1) <= stacks[current_stack].max_size)
             {
-$$$             printf("I NEED LESS SIZE current point = %d \n", stacks[current_stack].cur_size);
-
                 int less_size = round((stacks[current_stack].max_size)/2);
+$$$             printf("I NEED LESS SIZE current point = %d \t max size = %d \t need size = %d \n",
+                       stacks[current_stack].cur_size,
+                       stacks[current_stack].max_size,
+                       less_size
+                       );
+
                 stacks[current_stack].record = (int*) realloc(stacks[current_stack].record, less_size);
                 assert(stacks[current_stack].record);
 
-                memset(stacks[current_stack].record + stacks[current_stack].cur_size + 1, 0, (stacks[current_stack].max_size - stacks[current_stack].cur_size)*sizeof(int));
+                memset(stacks[current_stack].record + stacks[current_stack].cur_size + 1,
+                       0,
+                       (stacks[current_stack].max_size - stacks[current_stack].cur_size)*sizeof(int)
+                       );
                 stacks[current_stack].max_size = less_size;
 
-//$$$             printf("I NEED LESS SIZE st->cursize = %d \n", st->cur_size);
+//$$$             printf("I NEED LESS SIZE current point = %d \n", stacks[current_stack].cur_size);
             }
             break;
         default:
@@ -156,6 +163,8 @@ int StackPull()
 
     stacks[current_stack].cur_size--;
     int out = stacks[current_stack].record[stacks[current_stack].cur_size];
+
+    //stacks[current_stack].record[stacks[current_stack].cur_size] = 0;
 
     ChangeSize(LESSSIZE);
 
