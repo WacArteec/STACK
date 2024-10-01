@@ -7,6 +7,7 @@
 #define $$$
 #define Stack_Ass(st) \
 
+enum{MORESIZE = 1, LESSSIZE};
 enum {SIZE_PROBLEM};
 
 typedef long unsigned int stack_type_duty ;
@@ -19,12 +20,13 @@ struct Stackstruct
     const char* err_out_file = "ShowStack.txt";
 };
 
+
 int StackInit(Stackstruct* st, int count_elem);
 void StackOk(Stackstruct* st, int LineNum);
 void StackPush(Stackstruct* st, int in);
 int StackPull(Stackstruct* st);
 void ShowStack(Stackstruct* st);
-void ChangeSize(Stackstruct* st);
+void ChangeSize(Stackstruct* st, int mode);
 void StackDestroy(Stackstruct* st);
 
 int main()
@@ -39,15 +41,17 @@ int main()
     }
     while(StackInit(&st, stack_size));
 
-    for(int i = 0; i < 25; i++)
+    for(int i = 1; i < 25; i++)
     {
         StackPush(&st, i);
 //$$$     printf("i = %d \n", i);
     }
 
-    for(int i = 0; i < 25; i++)
+    for(int i = 0; i < 24; i++)
     {
-        printf("%d \n", StackPull(&st));
+//$$$     printf("\n %d\n", 24-i);
+$$$     printf("\n current point = %d \n", st.cur_size);
+        printf("StackPull = %d \n", StackPull(&st));
     }
 
     StackDestroy(&st);
@@ -117,7 +121,7 @@ void StackPush(Stackstruct* st, int in)
 {
     StackOk(st, __LINE__);
 
-    ChangeSize(st);
+    ChangeSize(st, MORESIZE);
 
     st->record[st->cur_size] = in;
     st->cur_size++;
@@ -125,25 +129,40 @@ void StackPush(Stackstruct* st, int in)
     StackOk(st, __LINE__);
 }
 
-void ChangeSize(Stackstruct* st)
+void ChangeSize(Stackstruct* st, int mode)
 {
     assert(st);
 
-    if(st->cur_size >= st->max_size - 1)
+    switch(mode)
     {
-        st->max_size *= 2;
-        st->record = (int*) realloc(st->record, st->max_size * sizeof(int));
-        assert(st->record);
-//$$$     printf("I NEED MORE SIZE \n");
-    }
+        case MORESIZE:
+            if(st->cur_size >= st->max_size - 1)
+            {
+                st->max_size *= 2;
+                st->record = (int*) realloc(st->record, st->max_size * sizeof(int));
+                assert(st->record);
+//$$$             printf("I NEED MORE SIZE \n");
+            }
+            break;
 
-    if(4 * (st->cur_size + 1) <= st->max_size)
-    {
-        int less_size = round((st->max_size)/2);
-        st->record = (int*) realloc(st->record, less_size);
-        assert(st->record);
-        memset(st->record + st->cur_size + 1, 0, (st->max_size - st->cur_size)*sizeof(int));
-        st->max_size = less_size;
+        case LESSSIZE:
+            if(4 * (st->cur_size + 1) <= st->max_size)
+            {
+//$$$             printf("I NEED LESS SIZE st->cursize = %d \n", st->cur_size);
+
+                int less_size = round((st->max_size)/2);
+                st->record = (int*) realloc(st->record, less_size);
+                assert(st->record);
+
+                memset(st->record + st->cur_size + 1, 0, (st->max_size - st->cur_size)*sizeof(int));
+                st->max_size = less_size;
+
+//$$$             printf("I NEED LESS SIZE st->cursize = %d \n", st->cur_size);
+            }
+            break;
+        default:
+            StackOk(st, __LINE__);
+            break;
     }
 
     StackOk(st, __LINE__);
@@ -156,7 +175,7 @@ int StackPull(Stackstruct* st)
     st->cur_size--;
     int out = st->record[st->cur_size];
 
-    ChangeSize(st);
+    ChangeSize(st, LESSSIZE);
 
     StackOk(st, __LINE__);
 
